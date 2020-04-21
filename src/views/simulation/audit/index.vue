@@ -10,16 +10,11 @@
               <el-input v-model="searchObj.sceneName" type="text" placeholder="场景名称" />
             </el-form-item>
             <el-form-item label="道路类型">
-              <el-select v-model="filters.options.roadTypeOptions.value" placeholder="请选择">
-                <el-option
-                  v-for="item in filters.options.roadTypeOptions.options"
-                  :key="item.value"
-                  :label="item.label"
-                  :value="item.value"
-                />
-              </el-select>
+              <el-input v-model="searchObj.roadTypeName" auto-complete="off" readonly="readonly" @click.native="showSceneTypeTree('search')">
+                <el-button slot="append" icon="el-icon-search" />
+              </el-input>
             </el-form-item>
-            <el-form-item label="场景类型">
+            <!-- <el-form-item label="场景类型">
               <el-select v-model="filters.options.sceneTypeOptions.value" placeholder="请选择">
                 <el-option
                   v-for="item in filters.options.sceneTypeOptions.options"
@@ -28,7 +23,7 @@
                   :value="item.value"
                 />
               </el-select>
-            </el-form-item>
+            </el-form-item> -->
             <el-form-item label="场景来源">
               <el-select v-model="filters.options.sceneSourceOptions.value" placeholder="请选择">
                 <el-option
@@ -99,18 +94,22 @@
           />
 
           <el-table-column
-            prop="roadType"
+            prop="scenetypeList"
+            label="场景类型"
+            :formatter="formatScenetypeList"
+          />
+
+          <!-- <el-table-column
+            prop="roadTypeObj.stName"
             label="道路类型"
-            :formatter="formatOptions"
             sortable
           />
 
           <el-table-column
-            prop="sceneType"
+            prop="sceneTypeObj.stName"
             label="场景类型"
-            :formatter="formatOptions"
             sortable
-          />
+          /> -->
 
           <el-table-column
             prop="sceneSource"
@@ -125,6 +124,12 @@
             :formatter="formatOptions"
             sortable
           />
+          <!-- <el-table-column
+            prop="previewFile"
+            label="预览文件"
+            :formatter="formatDataProgressOptions"
+            sortable
+          /> -->
           <el-table-column
             prop="reviewStatus"
             label="审核状态"
@@ -139,15 +144,15 @@
           />
           <el-table-column
             prop="sysUser.username"
-            label="操作人"
+            label="负责人"
             sortable
           />
-          <el-table-column
+          <!-- <el-table-column
             prop="updateTime"
             label="操作时间"
             :formatter="formatDate"
             sortable
-          />
+          /> -->
           <el-table-column label="操作" width="400">
             <template slot-scope="scope">
               <el-button
@@ -160,12 +165,17 @@
                 type="success"
                 @click="handleEdit(scope.$index, scope.row)"
               >审核</el-button>
+              <el-button
+                size="small"
+                type="success"
+                @click="handlePreviewImg(scope.$index, scope.row)"
+              >预览</el-button>
               <!-- <el-button
                 size="small"
                 type="danger"
                 @click="handleDelete(scope.$index, scope.row)"
-              >删除</el-button> -->
-              <!-- <el-button
+              >删除</el-button>
+              <el-button
                 size="small"
                 type="primary"
                 disabled
@@ -189,7 +199,7 @@
       </div>
 
       <el-dialog :title="dialogTitle" :visible.sync="addDialogVisible" :close-on-click-modal="false">
-        <el-form :model="data" label-width="120px" :inline="true">
+        <el-form :disabled="isShow" :model="data" label-width="120px" :inline="true">
           <el-form-item label="场景ID">
             <el-input v-model="data.sid" :disabled="true" />
           </el-form-item>
@@ -206,17 +216,10 @@
           <el-form-item label="场景名称">
             <el-input v-model="data.sceneName" :disabled="true" />
           </el-form-item>
-          <el-form-item label="道路类型">
-            <el-select v-model="options.roadTypeOptions.value" :disabled="true">
-              <el-option
-                v-for="item in options.roadTypeOptions.options"
-                :key="item.value"
-                :label="item.label"
-                :value="item.value"
-              />
-            </el-select>
-          </el-form-item>
           <el-form-item label="场景类型">
+            <el-input v-model="data.roadTypeName" auto-complete="off" readonly="readonly" :disabled="true" />
+          </el-form-item>
+          <!-- <el-form-item label="场景类型">
             <el-select v-model="options.sceneTypeOptions.value" :disabled="true">
               <el-option
                 v-for="item in options.sceneTypeOptions.options"
@@ -225,7 +228,7 @@
                 :value="item.value"
               />
             </el-select>
-          </el-form-item>
+          </el-form-item> -->
           <el-form-item label="场景来源">
             <el-select v-model="options.sceneSourceOptions.value" :disabled="true">
               <el-option
@@ -246,8 +249,32 @@
               />
             </el-select>
           </el-form-item>
+          <el-form-item label="关键词">
+            <el-select v-model="keywordOptions.value" multiple clearable filterable placeholder="请选择" :disabled="true">
+              <!-- <el-option
+                v-for="item in options.keywordOptions.options"
+                :key="item.value"
+                :label="item.label"
+                :value="item.value"
+              /> -->
+
+              <el-option-group
+                v-for="group in keywordOptions.options"
+                :key="group.label"
+                :label="group.label"
+              >
+                <el-option
+                  v-for="item in group.options"
+                  :key="item.value"
+                  :label="item.label"
+                  :value="item.value"
+                />
+              </el-option-group>
+
+            </el-select>
+          </el-form-item>
           <el-form-item label="审核状态">
-            <el-select v-model="options.reviewStatusOptions.value" placeholder="请选择" :disabled="isShow">
+            <el-select v-model="options.reviewStatusOptions.value" placeholder="请选择">
               <el-option
                 v-for="item in options.reviewStatusOptions.options"
                 :key="item.value"
@@ -264,7 +291,6 @@
               type="textarea"
               :rows="4"
               placeholder="请输入内容"
-              :disabled="isShow"
             />
           </el-form-item>
           <br>
@@ -278,6 +304,28 @@
               :disabled="true"
             />
           </el-form-item>
+          <br>
+          <el-form-item label="场景预览文件">
+            <el-input
+              v-if="data.previewFile != ''"
+              v-model="data.previewFile"
+            />
+          </el-form-item>
+          <el-form-item>
+            <el-upload
+              ref="upload"
+              class="upload-demo inline-block"
+              action="https://jsonplacehoder.typeicon.com/posts/"
+              :show-file-list="false"
+              :on-preview="handlePreview"
+              :on-remove="handleRemove"
+              :auto-upload="true"
+              :before-upload="beforeUpload"
+              :on-success="onSuccess"
+            >
+              <el-button size="small" type="primary">点击上传</el-button>
+            </el-upload>
+          </el-form-item>
         </el-form>
         <div slot="footer" class="dialog-footer">
           <el-button @click="addDialogVisible = false">取 消</el-button>
@@ -285,12 +333,42 @@
         </div>
       </el-dialog>
 
+      <el-dialog title="选择" :visible.sync="sceneTypeTreeDialog" :close-on-click-modal="false">
+        <el-container style="height: 400px;width:100%; border: 1px solid #eee;overflow-y: scroll;">
+          <el-tree
+            ref="tree"
+            show-checkbox
+            :check-strictly="true"
+            style="width:100%;"
+            :data="sceneTypeTree"
+            node-key="stId"
+            highlight-current
+            :props="defaultProps"
+            :default-expanded-keys="['0']"
+            @node-click="handleNodeClick"
+            @check-change="checkChange"
+          />
+        </el-container>
+        <div slot="footer" class="dialog-footer">
+          <el-button @click="sceneTypeTreeDialog = false">取 消</el-button>
+          <el-button type="primary" @click="saveParentSceneType">确 定</el-button>
+        </div>
+      </el-dialog>
+
     </div>
+
+    <el-dialog
+      :title="previewImgTitle"
+      :visible.sync="previewImgDialogVisible"
+      width="50%"
+    >
+      <el-image :src="previewImgUrl" />
+    </el-dialog>
   </div>
 </template>
 
 <script>
-import { getCollectionDataListNotPage, sceneList, addScene, editScene, deleteScene } from '@/api/simulation'
+import { getCollectionDataListNotPage, sceneList, addScene, editScene, deleteScene, imgUpload, getPreviewFileUrl, getSceneTypeTree } from '@/api/simulation'
 import moment from 'moment'
 
 // import qs from 'qs'
@@ -300,27 +378,40 @@ export default {
     return {
       isShow: false,
       dialogTitle: '新增',
+      sceneTypeTree: [],
+      sceneTypeTreeType: '',
+      defaultProps: {
+        children: 'children',
+        label: 'stName',
+        disabled: function(data, node) {
+          if (node.childNodes.length > 0) {
+            return true
+          } else {
+            return false
+          }
+        }
+      },
+      sceneTypeTreeDialog: false,
+      editCheckId: '',
       searchText: '',
       // 表格当前页数据
       tableData: [],
-
       // 默认每页数据量
       pagesize: 10,
-
       // 当前页码
       currentPage: 1,
-
       // 查询的页码
       start: 1,
-
       // 默认数据总数
       totalCount: 1000,
-
       // 添加对话框默认可见性
       addDialogVisible: false,
-
       // 修改对话框默认可见性
       updateFormVisible: false,
+
+      previewImgDialogVisible: false,
+      previewImgUrl: '',
+      previewImgTitle: '',
 
       // 提交的表单
       data: {
@@ -329,12 +420,15 @@ export default {
         sceneName: '',
         sceneDescription: '',
         roadType: '',
+        roadTypeName: '',
         sceneType: '',
         sceneSource: '',
         status: '',
         previewFile: '',
         reviewStatus: '',
-        reviewComment: ''
+        reviewComment: '',
+        scenetypeList: []
+
       },
       searchObj: {
         sceneName: '',
@@ -345,43 +439,44 @@ export default {
         status: '',
         previewFile: '',
         reviewStatus: '',
-        reviewComment: ''
+        reviewComment: '',
+        scenetypeList: []
       },
       options: {
-        roadTypeOptions: {
-          options: [
-            {
-              value: 0,
-              label: '请选择'
-            },
-            {
-              value: 1,
-              label: '高速'
-            }, {
-              value: 2,
-              label: '国道'
-            }, {
-              value: 3,
-              label: '省道'
-            }
-          ],
-          value: 1
-        },
+        // roadTypeOptions: {
+        //   options: [
+        //     {
+        //       value: 0,
+        //       label: '请选择'
+        //     },
+        //     {
+        //       value: 1,
+        //       label: '高速'
+        //     }, {
+        //       value: 2,
+        //       label: '国道'
+        //     }, {
+        //       value: 3,
+        //       label: '省道'
+        //     }
+        //   ],
+        //   value: ''
+        // },
         sceneTypeOptions: {
           options: [
-            {
-              value: 0,
-              label: '请选择'
-            },
-            {
-              value: 1,
-              label: '动态场景'
-            }, {
-              value: 2,
-              label: '静态场景'
-            }
+            // {
+            //   value: 0,
+            //   label: '请选择'
+            // },
+            // {
+            //   value: 1,
+            //   label: '动态场景'
+            // }, {
+            //   value: 2,
+            //   label: '静态场景'
+            // }
           ],
-          value: 1
+          value: ''
         },
         sceneSourceOptions: {
           options: [
@@ -391,10 +486,10 @@ export default {
             },
             {
               value: 1,
-              label: '接口导入'
+              label: '车载采集'
             }, {
               value: 2,
-              label: '页面新增'
+              label: '路侧采集'
             }, {
               value: 3,
               label: '其他'
@@ -421,17 +516,22 @@ export default {
           ],
           value: 1
         },
+
         reviewStatusOptions: {
           options: [
-            {
-              value: 0,
-              label: '请选择'
-            },
+            // {
+            //   value: 0,
+            //   label: '未审核(待分发)'
+            // },
             {
               value: 1,
+              label: '待审核'
+            },
+            {
+              value: 2,
               label: '审核通过'
             }, {
-              value: 2,
+              value: 3,
               label: '审核未通过'
             }
           ],
@@ -458,23 +558,23 @@ export default {
                 label: '省道'
               }
             ],
-            value: 0
+            value: ''
           },
           sceneTypeOptions: {
             options: [
-              {
-                value: 0,
-                label: '请选择'
-              },
-              {
-                value: 1,
-                label: '动态场景'
-              }, {
-                value: 2,
-                label: '静态场景'
-              }
+              // {
+              //   value: 0,
+              //   label: '请选择'
+              // },
+              // {
+              //   value: 1,
+              //   label: '动态场景'
+              // }, {
+              //   value: 2,
+              //   label: '静态场景'
+              // }
             ],
-            value: 0
+            value: ''
           },
           sceneSourceOptions: {
             options: [
@@ -484,10 +584,10 @@ export default {
               },
               {
                 value: 1,
-                label: '接口导入'
+                label: '车载采集'
               }, {
                 value: 2,
-                label: '页面新增'
+                label: '路侧采集'
               }, {
                 value: 3,
                 label: '其他'
@@ -516,22 +616,32 @@ export default {
           },
           reviewStatusOptions: {
             options: [
-              {
-                value: 0,
-                label: '请选择'
-              },
+              // {
+              //   value: 0,
+              //   label: '未审核(待分发)'
+              // },
               {
                 value: 1,
+                label: '待审核'
+              },
+              {
+                value: 2,
                 label: '审核通过'
               }, {
-                value: 2,
+                value: 3,
                 label: '审核未通过'
               }
             ],
             value: 1
           }
         }
-      }
+      },
+      keywordOptions: {
+        options: [],
+        value: []
+      },
+      keywordlist: []
+
     }
   },
   mounted() {
@@ -552,7 +662,153 @@ export default {
       sceneList(this.searchObj).then(response => {
         that.tableData = response.list.list
         that.totalCount = response.number
+        that.keywordlist = response.keywordlist
+        that.keywordList()
       })
+    },
+    showSceneTypeTree: function(type) {
+      this.sceneTypeTreeType = type
+      var that = this
+      getSceneTypeTree({ stId: '0', stType: '0' }).then(response => {
+        that.sceneTypeTree = [response.data]
+        that.sceneTypeTreeDialog = true
+        // that.defaultExpandedKeys = [that.data.roadType]
+        // that.defaultCheckedKeys = [that.data.roadType]
+        var tempList = []
+        if (that.data.scenetypeList == null || that.data.scenetypeList === undefined) {
+          that.data.scenetypeList = []
+        }
+        for (var i = 0; i < that.data.scenetypeList.length; i++) {
+          tempList.push(that.data.scenetypeList[i].stId)
+        }
+        if (this.sceneTypeTreeType !== 'search') {
+          that.defaultExpandedKeys = tempList
+          that.defaultCheckedKeys = tempList
+        } else {
+          that.defaultExpandedKeys = ['0']
+          that.defaultCheckedKeys = []
+        }
+      })
+    },
+    saveParentSceneType: function() {
+      this.sceneTypeTreeDialog = false
+      if (this.sceneTypeTreeType === 'search') {
+        this.searchObj.scenetypeList = this.$refs.tree.getCheckedNodes()
+        this.searchObj.roadTypeName = this.getSceneTypeNames(this.searchObj.scenetypeList)
+      } else {
+        this.data.scenetypeList = this.$refs.tree.getCheckedNodes()
+        this.data.roadTypeName = this.getSceneTypeNames(this.data.scenetypeList)
+      }
+      // this.currentNode = this.$refs.tree.getCheckedNodes()[0]
+      // this.sceneTypeTreeDialog = false
+      // this.data.roadType = this.currentNode.stId
+      // this.data.roadTypeName = this.currentNode.stName
+      // this.getSceneTypeList()
+    },
+    getSceneTypeNames(list) {
+      var result = ''
+      var obj = null
+      for (var i = 0; i < list.length; i++) {
+        obj = list[i]
+        result = result + ',' + obj.stName
+      }
+      return result
+    },
+    getSceneTypeList: function() {
+      var that = this
+      getSceneTypeTree({ stId: this.data.roadType }).then(response => {
+        var item = null
+        var _options = [{
+          value: '',
+          label: '请选择'
+        }]
+        var list = response.data.children
+        for (var idx in list) {
+          item = list[idx]
+          _options.push({
+            value: item.stId,
+            label: item.stName
+          })
+        }
+        that.options.sceneTypeOptions.options = _options
+        // that.filters.options.sceneTypeOptions = that.options.sceneTypeOptions
+        that.filters.options.sceneTypeOptions = JSON.parse(JSON.stringify(that.options.sceneTypeOptions))
+        that.filters.options.sceneTypeOptions.value = ''
+      })
+    },
+    handleNodeClick(item, node, self) { // 自己定义的editCheckId，防止单选出现混乱
+      /* if (item.children.length === 0) {
+        this.editCheckId = item.stId
+        this.$refs.tree.setCheckedKeys([item.stId])
+      } */
+    },
+    checkChange(item, node, self) {
+      /* if (item.children.length === 0) {
+        if (node === true) {
+          this.editCheckId = item.stId
+          this.$refs.tree.setCheckedKeys([item.stId])
+        } else {
+          if (this.editCheckId === item.stId) {
+            this.$refs.tree.setCheckedKeys([item.stId])
+          }
+        }
+      } else {
+        this.$refs.tree.setChecked(item, false)
+      } */
+    },
+    keywordList() {
+      var that = this
+      // keywordList({}).then(response => {
+      // that.keywordlist = response.list
+      var item = null
+      var optionsOne = []
+      var optionsTwo = []
+      var optionsThree = []
+      var oneObj = {
+        label: '交互类型',
+        options: []
+      }
+      var twoObj = {
+        label: '区域类型',
+        options: []
+      }
+      var threeObj = {
+        label: '道路类型',
+        options: []
+      }
+
+      for (var index in that.keywordlist) {
+        item = that.keywordlist[index]
+        switch (item.type) {
+          case 1:
+            optionsOne.push({
+              value: item.kwId,
+              label: item.kwName
+            })
+            break
+          case 2:
+            optionsTwo.push({
+              value: item.kwId,
+              label: item.kwName
+            })
+            break
+          case 3:
+            optionsThree.push({
+              value: item.kwId,
+              label: item.kwName
+            })
+            break
+        }
+      }
+      oneObj.options = optionsOne
+      twoObj.options = optionsTwo
+      threeObj.options = optionsThree
+      that.keywordOptions.options = []
+      that.keywordOptions.options.push(oneObj)
+      that.keywordOptions.options.push(twoObj)
+      that.keywordOptions.options.push(threeObj)
+      that.keywordOptions.value = []
+      // })
     },
     getFilters: function() {
       // this.searchObj = {}
@@ -576,7 +832,8 @@ export default {
         status: '',
         previewFile: '',
         reviewStatus: '',
-        reviewComment: ''
+        reviewComment: '',
+        scenetypeList: []
       }
     },
 
@@ -594,6 +851,17 @@ export default {
     },
     initRowToObj: function(row) {
       this.data = JSON.parse(JSON.stringify(row))
+      // this.data.roadTypeName = row.roadTypeObj.stName
+      this.data.roadTypeName = ''
+      for (var i in this.data.scenetypeList) {
+        this.data.roadTypeName = this.data.roadTypeName + ',' + this.data.scenetypeList[i].stName
+      }
+      this.keywordOptions.value = []
+      for (var index in this.data.keywordList) {
+        this.keywordOptions.value.push(this.data.keywordList[index].kwId)
+      }
+      // this.getSceneTypeList()
+      // this.options.sceneTypeOptions.value = row.sceneTypeObj.stId
       this.infoToOptions()
     },
 
@@ -678,6 +946,14 @@ export default {
           })
         })
     },
+    handlePreviewImg: function(index, row) {
+      var that = this
+      getPreviewFileUrl(row).then(response => {
+        that.previewImgDialogVisible = true
+        that.previewImgUrl = response.imgUrl + '?+' + Math.round(Math.random() * 100)
+        that.previewImgTitle = '【场景名称】' + row.sceneName
+      })
+    },
     handleDownload: function(index, row) {
 
     },
@@ -698,6 +974,13 @@ export default {
         var propKey = key.substr(0, key.length - 7)
         this.data[propKey] = this.options[key]['value']
       }
+      // keywordOptions.value to this.data.keywordList
+      this.data.keywordList = []
+      for (var index in this.keywordOptions.value) {
+        this.data.keywordList.push({
+          kwId: this.keywordOptions.value[index]
+        })
+      }
     },
     infoToOptions: function() {
       for (var key in this.options) {
@@ -716,6 +999,15 @@ export default {
         if (val === item.value) {
           result = item.label
         }
+      }
+      return result
+    },
+    formatScenetypeList(row, column) {
+      // 获取单元格数据
+      const val = row[column.property]
+      var result = ''
+      for (var i = 0; i < val.length; i++) {
+        result = result + val[i].stName + ','
       }
       return result
     },
@@ -743,6 +1035,98 @@ export default {
         that.options.scIdOptions.options = _options
         that.options.scIdOptions.index = ''
       })
+    },
+
+    handleRemove(file, fileList) {
+      console.log(file, fileList)
+    },
+    handlePreview(file) {
+      console.log(file)
+    },
+    beforeUpload(file) {
+      var that = this
+      // var upLoadFileName = file.name
+      // 如果上传的文件不符合条件
+      var checkMessage = this.fileCheck(file)
+      if (checkMessage !== '') {
+        this.$message(checkMessage)
+        return
+      }
+      var formData = new FormData()
+      formData.append('file', file)
+      var param = {
+        sid: this.data.sid,
+        scId: this.data.scId,
+        previewFile: this.data.previewFile
+      }
+
+      // var filesCollectionParamTemp = this.pFilesCollectionMap[this.fileParam.fcType]
+      // var filesCollectionParam = {
+      //   fcId: filesCollectionParamTemp.fcId,
+      //   preId: filesCollectionParamTemp.preId,
+      //   reportFileName: filesCollectionParamTemp.reportFileName,
+      //   reportFileNo: filesCollectionParamTemp.reportFileNo,
+      //   situation: filesCollectionParamTemp.situation,
+      //   problem: filesCollectionParamTemp.problem,
+      //   fcType: this.fileParam.fcType
+      // }
+      // filesCollectionParam.fcType = this.fileParam.fcType
+      // var filesParam = this.projectInfo.pPrework.pFilesCollectionMap[this.fileParam.fcType]['filesMap'][this.fileParam.pfClass]
+      // var filesParamTemp = this.pFilesCollectionMap[this.fileParam.fcType]['filesMap'][this.fileParam.pfClass]
+      // var filesParam = null
+      // if (filesParamTemp === undefined || filesParamTemp === null) {
+      //   filesParam = {
+      //     fcType: this.fileParam.fcType,
+      //     pfClass: this.fileParam.pfClass
+      //   }
+      // } else {
+      //   filesParam = {
+      //     pfId: filesParamTemp.pfId,
+      //     fcId: filesParamTemp.fcId,
+      //     pfClass: this.fileParam.pfClass,
+      //     fcType: this.fileParam.fcType
+      //   }
+      // }
+      formData.append('sseSceneDatasStr', JSON.stringify(param))
+      imgUpload(formData).then(response => {
+        console.log(response)
+        if (response.status === 200) {
+          this.$message({
+            type: 'success',
+            message: '文件上传成功'
+          })
+          that.data.previewFile = response.name
+        } else if (response.status === 500) {
+          this.$message({
+            type: 'warning',
+            message: `文件上传失败,失败原因${response.msg}`
+          })
+        }
+      })
+    },
+    // setFileType(fcType, pfClass) {
+    //   this.fileParam.fcType = fcType
+    //   this.fileParam.pfClass = pfClass
+    // },
+
+    onSuccess(response, file, fileList) {
+      console.log(response, file, fileList)
+    },
+    // 前端校验文件上传是否符合条件
+    fileCheck(file) {
+      var ret = ''
+      if (file === undefined) {
+        ret = ''
+      }
+      var max_file_size = 20 * 1024 * 1024
+      if (file.size > max_file_size) {
+        ret = '图片不能大于20Mb'
+      }
+      // var fileType = file.name.substring(file.name.lastIndexOf('.') + 1)
+      // if (!this.validFile(fileType)) {
+      //   ret = '文件类型不符合要求'
+      // }
+      return ret
     }
 
   }

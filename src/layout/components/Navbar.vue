@@ -16,18 +16,22 @@
               首页
             </el-dropdown-item>
           </router-link>
-          <a target="_blank" href="https://github.com/jinshw/mountain-element-ui.git/">
-            <el-dropdown-item>前端工程</el-dropdown-item>
+          <a target="_blank" href="main.html">
+            <el-dropdown-item>平台介绍</el-dropdown-item>
           </a>
-          <a target="_blank" href="https://github.com/jinshw/mountain.git/">
+          <a href="javascript:void(0)" @click="resetPasswordDialog">
+            <el-dropdown-item>修改密码</el-dropdown-item>
+          </a>
+          <!-- <a target="_blank" href="https://github.com/jinshw/mountain.git/">
             <el-dropdown-item>后端工程</el-dropdown-item>
-          </a>
+          </a> -->
           <el-dropdown-item divided>
             <span style="display:block;" @click="logout">退出</span>
           </el-dropdown-item>
         </el-dropdown-menu>
       </el-dropdown>
     </div>
+    <reset-password ref="resetPasswordRef" />
   </div>
 </template>
 
@@ -35,11 +39,17 @@
 import { mapGetters } from 'vuex'
 import Breadcrumb from '@/components/Breadcrumb'
 import Hamburger from '@/components/Hamburger'
+import ResetPassword from './ResetPassword'
 
 export default {
   components: {
     Breadcrumb,
-    Hamburger
+    Hamburger,
+    ResetPassword
+  },
+  data() {
+    return {
+    }
   },
   computed: {
     ...mapGetters([
@@ -54,7 +64,11 @@ export default {
     async logout() {
       await this.$store.dispatch('user/logout')
       this.$router.push(`/login?redirect=${this.$route.fullPath}`)
+    },
+    resetPasswordDialog() {
+      this.$refs['resetPasswordRef'].setDialog(true)
     }
+
   }
 }
 </script>
@@ -136,4 +150,5 @@ export default {
     }
   }
 }
+
 </style>

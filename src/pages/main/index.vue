@@ -4,11 +4,12 @@
       <div class="main-head-top">
         <div class="main-head-top-inside">
           <aside class="main-head-top-operation">
-            <a href="" class="main-head-top-operation-loginBtn main-head-top-btn">企业登录</a>
-            <a href="" class="main-head-top-operation-registerBtn main-head-top-btn">下载</a>
+            <!-- <a href="#" class="main-head-top-operation-loginBtn main-head-top-btn">登录</a> -->
+            <!-- <a href="index.html" class="main-head-top-operation-registerBtn main-head-top-btn">控制台</a> -->
           </aside>
           <a href="" class="main-head-top-title">
             <h1 class="main-head-top-title-inner">
+              <img v-if="logo" :src="logo" class="main-logo">
               <span class="main-head-top-title-inner">仿真平台</span>
             </h1>
           </a>
@@ -27,7 +28,7 @@
                 <div class="main-head-info-title">让您体验真实的驾驶场景</div>
               </div>
               <div class="main-head-btns">
-                <a href="" class="main-head-btns-welcome">欢迎进入</a>
+                <a href="mainlist.html" class="main-head-btns-welcome">欢迎进入</a>
               </div>
             </div>
           </div>
@@ -38,9 +39,27 @@
       <div class="main-content-inside">
         <div class="main-content-section">
           <el-row>
+            <el-col :span="12" class="main-content-section-countbar">
+              <div class="countbar-title">采集数据量</div>
+              <div class="countbar-number">
+                <count-to :start-val="0" :end-val="collectionTotal" :duration="4000" :decimals="0" :separator="separator" :prefix="prefix" :suffix="suffix" :autoplay="true" />
+              </div>
+            </el-col>
+            <el-col :span="12" class="main-content-section-countbar">
+              <div class="countbar-title">场景数据量</div>
+              <div class="countbar-number">
+                <count-to :start-val="0" :end-val="sceneTotal" :duration="4000" :decimals="0" :separator="separator" :prefix="prefix" :suffix="suffix" :autoplay="true" />
+              </div>
+            </el-col>
+          </el-row>
+        </div>
+      </div>
+      <div class="main-content-inside main-content-inside-feature">
+        <div class="main-content-section">
+          <el-row>
             <el-col :span="6">
               <div class="main-content-section-item" style="">
-                <div class="main-content-section-item-img main-csi-item-Feature3 " />
+                <div class="main-content-section-item-img main-csi-item-Feature1 " />
                 <div class="main-content-section-item-title">
                   丰富的数据源
                 </div>
@@ -55,7 +74,7 @@
             </el-col>
             <el-col :span="6">
               <div class="main-content-section-item" style="">
-                <div class="main-content-section-item-img main-csi-item-Feature3 " />
+                <div class="main-content-section-item-img main-csi-item-Feature2 " />
                 <div class="main-content-section-item-title">
                   多样化场景
                 </div>
@@ -85,7 +104,7 @@
             </el-col>
             <el-col :span="6">
               <div class="main-content-section-item" style="">
-                <div class="main-content-section-item-img main-csi-item-Feature3 " />
+                <div class="main-content-section-item-img main-csi-item-Feature4 " />
                 <div class="main-content-section-item-title">
                   特色专题库
                 </div>
@@ -103,20 +122,114 @@
         </div>
       </div>
     </div>
-    <div class="main-foot-container">
-      <div class="main-foot-inside">
-        <div class="main-foot-info" />
-        <div class="main-foot-copyright">
-          Copyright © 2019 四维图新中交宇科 版权所有 ICP证：XXXXXXXXX
+    <div class="main-footer-container">
+      <div class="main-footer-info">
+        <el-row class="main-footer-nav">
+          <el-col :span="8">
+            <div class="footer-nav-item">
+              <div class="footer-nav-item-title">
+                企业门户
+              </div>
+              <ul class="footer-nav-item-list">
+                <li class="footer-nav-item-list-li">
+                  <a href="https://www.navinfo.com/" target="_blank">四维图新</a>
+                </li>
+                <li class="footer-nav-item-list-li">
+                  <a href="http://www.chtgeo.cn/" target="_blank">中交宇科</a>
+                </li>
+              </ul>
+            </div>
+          </el-col>
+          <el-col :span="8">
+            <div class="footer-nav-item">
+              <div class="footer-nav-item-title">
+                友情链接
+              </div>
+              <ul class="footer-nav-item-list">
+                <li class="footer-nav-item-list-li">
+                  <a href="http://www.minedata.cn/" target="_blank">世纪高通</a>
+                </li>
+                <li class="footer-nav-item-list-li">
+                  <a href="https://www.mapbar.com/" target="_blank">图吧导航</a>
+                </li>
+              </ul>
+            </div>
+          </el-col>
+          <el-col :span="8">
+            <div class="footer-nav-item">
+              <div class="footer-nav-item-title">
+                联系我们
+              </div>
+              <ul class="footer-nav-item-list">
+                <li class="footer-nav-item-list-li">
+                  <span>电话：010-64907119</span>
+                </li>
+                <li class="footer-nav-item-list-li">
+                  <span>邮箱：office@chtgeo.cn</span>
+                </li>
+              </ul>
+            </div>
+          </el-col>
+        </el-row>
+      </div>
+      <div class="main-footer-bottom">
+        <div class="main-footer-inside">
+          <div class="main-footer-copyright">
+            Copyright ©  All Rights Reserved   版权归中交宇科（北京）空间信息技术有限公司所有    京ICP备10055601号-2
+          </div>
         </div>
       </div>
+
     </div>
   </div>
 </template>
 
 <script>
+import CountTo from 'vue-count-to'
+import { getTotalDatas } from '@/api/simulation'
 export default {
-  name: 'App'
+  name: 'App',
+  components: {
+    CountTo
+  },
+  data() {
+    return {
+      logo: 'static/image/logo.png',
+      prefix: '',
+      separator: ',',
+      suffix: '条',
+      collectionTotal: 8888,
+      sceneTotal: 8888,
+      searchObj: {
+        sceneName: '',
+        sceneDescription: '',
+        roadType: '',
+        sceneType: '',
+        sceneSource: '',
+        status: '',
+        previewFile: '',
+        reviewStatus: 2,
+        reviewComment: '',
+        pageNum: 1,
+        pageSize: 10
+      }
+    }
+  },
+  mounted() {
+    this.getTotalDatas()
+  },
+  methods: {
+    getTotalDatas() {
+      var that = this
+      getTotalDatas(this.searchObj).then(response => {
+        console.log(response)
+        that.collectionTotal = response.collectionTotal
+        // that.progressTotal = response.progressTotal
+        that.sceneTotal = response.sceneTotal
+        // that.auditTotal = response.auditTotal
+      })
+    }
+  }
 }
 </script>
 <style lang="scss" scoped>
@@ -241,7 +354,7 @@ export default {
     left: 0;
     width: 100%;
     height: 100%;
-    background: url(/static/image/bg1024.jpg) center bottom no-repeat;
+    background: url(/simulation/static/image/bg1024.jpg) center bottom no-repeat;
     background-size:100% 100%;
     background-color: #000921;
   }
@@ -251,7 +364,7 @@ export default {
   }
   .main-content-section-item {
     text-align: center;
-    margin: 0 30px;
+    margin: 80px 30px;
   }
 
   .main-content-section-item-img{
@@ -263,12 +376,21 @@ export default {
     text-align: center;
     margin-bottom: 14px;
   }
+  .main-csi-item-Feature1 {
+    background-image: url(/simulation/static/image/Feature1.png);
+  }
+  .main-csi-item-Feature2 {
+    background-image: url(/simulation/static/image/Feature2.png);
+  }
   .main-csi-item-Feature3 {
-    background-image: url(/static/image/Feature3.png);
+    background-image: url(/simulation/static/image/Feature3.png);
+  }
+  .main-csi-item-Feature4 {
+    background-image: url(/simulation/static/image/Feature4.png);
   }
   .main-content-section-item-title {
-    font-size: 20px;
-    color: #323232;
+    font-size: 16px;
+    color: #111111;
     margin-bottom: 10px;
     text-align: center;
   }
@@ -282,24 +404,67 @@ export default {
     font-size: 13px;
   }
   .main-content-section-item-list-item-text {
-    font-size: 13px;
-    color: #555;
+    font-size: 12px;
+    color: #666666;
   }
-  .main-foot-container{
+  .main-footer-container{
+  }
+  .main-footer-bottom{
     margin: 20px 0;
     font-size: 12px;
   }
-  .main-foot-inside{
+  .main-footer-inside{
     position: relative;
     z-index: 2;
     width: 1000px;
     margin: 0 auto;
     padding: 56px 0 32px;
   }
-  .main-foot-copyright{
+  .main-footer-copyright{
     line-height: 2;
     color: #828282;
     text-align: center;
   }
+  .main-footer-info {
+    // background: #f6f6f6;
+    margin-top: 40px;
+  }
+  .main-footer-nav{
+    width: 1000px;
+    margin: 0 auto;
+  }
+  .footer-nav-item{
+    margin:0 80px;
+  }
+  .footer-nav-item-title{
+    font-size: 14px;
+  }
+  .footer-nav-item-list{
+    font-size: 12px;
+  }
+  .footer-nav-item-list-li{
+    margin-top:20px;
+  }
 
+  .main-content-section-countbar{
+    margin: 100px auto;
+    text-align: center;
+  }
+  .main-content-section-countbar .countbar-title{
+    font-size: 46px;
+  }
+  .main-content-section-countbar .countbar-number{
+    margin: 20px 0;
+    font-size: 42px;
+    color: #f6416c;
+  }
+  .main-content-inside-feature {
+    background-color: #f6f6f6;
+  }
+  .main-logo {
+    width: 38px;
+    height: 38px;
+    vertical-align: middle;
+    margin-right: 12px;
+  }
 </style>

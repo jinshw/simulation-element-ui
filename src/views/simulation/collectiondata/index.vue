@@ -1,6 +1,6 @@
 <template>
   <div>
-    <h1 class="d2-mt-0">数据采集管理</h1>
+    <h1 class="d2-mt-0">采集管理</h1>
     <div>
 
       <div id="top">
@@ -51,6 +51,7 @@
               </el-select></el-form-item> -->
             <el-button type="primary" @click="search">查询</el-button>
             <el-button type="primary" @click="handleAdd">添加</el-button>
+            <el-button type="primary" @click="distributionData">分发</el-button>
           </el-form>
 
           <!-- <el-col :span="6" />
@@ -64,11 +65,12 @@
       <div style="margin-top:15px">
 
         <el-table
-          ref="testTable"
+          ref="tableRef"
           :data="tableData"
           style="width:100%"
           border
         >
+          <el-table-column type="selection" width="55" />
           <el-table-column
             prop="cdId"
             label="数据编码"
@@ -103,17 +105,23 @@
             sortable
           />
 
+          <el-table-column
+            prop="sysUser.username"
+            label="负责人"
+            sortable
+          />
+
           <!-- <el-table-column
             prop="dataProgress"
             label="所在进程"
             :formatter="formatDataProgressOptions"
             sortable
           /> -->
-          <el-table-column
+          <!-- <el-table-column
             prop="sysUser.username"
             label="操作人"
             sortable
-          />
+          /> -->
           <el-table-column
             prop="optTime"
             label="操作时间"
@@ -161,15 +169,25 @@
       </div>
 
       <el-dialog :title="dialogTitle" :visible.sync="addDialogVisible" :close-on-click-modal="false">
-        <el-form :disabled="isShow" :model="data" label-width="120px">
-          <el-form-item label="数据编号">
+        <el-form ref="addRef" :disabled="isShow" :model="data" :rules="rules" label-width="120px">
+          <el-form-item label="采集任务" prop="sseTask.taskId">
+            <el-select v-model="data.sseTask.taskId" filterable placeholder="请选择">
+              <el-option
+                v-for="item in options.taskOptions.options"
+                :key="item.value"
+                :label="item.label"
+                :value="item.value"
+              />
+            </el-select>
+          </el-form-item>
+          <el-form-item label="数据编号" prop="cdId">
             <el-input v-model="data.cdId" :disabled="dialogTitle != '新增'" />
           </el-form-item>
-          <el-form-item label="数据名称">
+          <el-form-item label="数据名称" prop="cdName">
             <el-input v-model="data.cdName" auto-complete="off" />
           </el-form-item>
-          <el-form-item label="数据来源">
-            <el-select v-model="options.dataSourceOptions.value" placeholder="请选择">
+          <el-form-item label="数据来源" prop="dataSource">
+            <el-select v-model="data.dataSource" placeholder="请选择">
               <el-option
                 v-for="item in options.dataSourceOptions.options"
                 :key="item.value"
@@ -178,8 +196,8 @@
               />
             </el-select>
           </el-form-item>
-          <el-form-item label="数据类型">
-            <el-select v-model="options.dataTypeOptions.value" placeholder="请选择">
+          <el-form-item label="数据类型" prop="dataType">
+            <el-select v-model="data.dataType" placeholder="请选择">
               <el-option
                 v-for="item in options.dataTypeOptions.options"
                 :key="item.value"
@@ -197,21 +215,32 @@
         </el-form>
         <div slot="footer" class="dialog-footer">
           <el-button @click="addDialogVisible = false">取 消</el-button>
-          <el-button type="primary" :disabled="isShow" @click="submitData">确 定</el-button>
+          <el-button type="primary" :disabled="isShow" @click="submitData('addRef')">确 定</el-button>
         </div>
       </el-dialog>
 
     </div>
+
+    <DataDistributor
+      ref="dataDistributorRef"
+      :data-distributor-dialog-visible="dataDistributorDialogVisible"
+      @changeDataDistributor="changeDataDistributor"
+      @callback="callbackDataDistributor"
+    />
   </div>
 </template>
 
 <script>
-import { list, addData, editData, deleteData } from '@/api/simulation'
+import { list, addData, editData, deleteData, findDistributionList, addCollectionUser } from '@/api/simulation'
+import DataDistributor from '@/views/data/datadistributor/index'
 import moment from 'moment'
 
 // import qs from 'qs'
 export default {
   name: 'SseCollectionDatas',
+  components: {
+    DataDistributor
+  },
   data() {
     return {
       isShow: false,
@@ -246,7 +275,10 @@ export default {
         dataType: '',
         dataStep: '',
         dataProgress: '',
-        fileUrl: ''
+        fileUrl: '',
+        sseTask: {
+          taskId: ''
+        }
       },
       searchObj: {
         cdName: '',
@@ -256,6 +288,7 @@ export default {
         dataProgress: ''
       },
       options: {
+        taskOptions: {},
         dataSourceOptions: {
           options: [
             {
@@ -263,7 +296,7 @@ export default {
               label: '车载采集'
             }, {
               value: 2,
-              label: '路测采集'
+              label: '路侧采集'
             }
           ],
           value: 1
@@ -272,16 +305,20 @@ export default {
           options: [
             {
               value: 1,
-              label: '文件'
+              label: '动态场景'
             }, {
               value: 2,
-              label: '数据库'
+              label: '静态场景'
             }
           ],
           value: 1
         },
         dataStepOptions: {
           options: [
+            {
+              value: 0,
+              label: '请选择'
+            },
             {
               value: 1,
               label: '新数据'
@@ -291,9 +328,13 @@ export default {
             }, {
               value: 3,
               label: '场景生成'
+            }, {
+              value: 100,
+              label: '未分发'
             }
+
           ],
-          value: 1
+          value: 0
         },
         dataProgressOptions: {
           options: [
@@ -329,7 +370,7 @@ export default {
                 label: '车载采集'
               }, {
                 value: 2,
-                label: '路测采集'
+                label: '路侧采集'
               }
             ],
             value: 0
@@ -341,10 +382,10 @@ export default {
                 label: '请选择'
               }, {
                 value: 1,
-                label: '文件'
+                label: '动态场景'
               }, {
                 value: 2,
-                label: '数据库'
+                label: '静态场景'
               }
             ],
             value: 0
@@ -354,7 +395,8 @@ export default {
               {
                 value: 0,
                 label: '请选择'
-              }, {
+              },
+              {
                 value: 1,
                 label: '新数据'
               }, {
@@ -363,7 +405,11 @@ export default {
               }, {
                 value: 3,
                 label: '场景生成'
+              }, {
+                value: 100,
+                label: '未分发'
               }
+
             ],
             value: 0
           },
@@ -392,11 +438,32 @@ export default {
             value: 0
           }
         }
-      }
+      },
+      rules: {
+        'sseTask.taskId': [
+          { required: true, message: '请选择采集任务', trigger: 'change' }
+        ],
+        cdId: [
+          { required: true, message: '请输入数据编号', trigger: ['blur', 'change'] },
+          { min: 3, max: 50, message: '长度在3 到 30 个字符', trigger: ['blur', 'change'] }
+        ],
+        cdName: [
+          { required: true, message: '请输入数据名称', trigger: ['blur', 'change'] },
+          { min: 3, max: 50, message: '长度在3 到 30 个字符', trigger: ['blur', 'change'] }
+        ],
+        dataSource: [
+          { required: true, message: '请选择数据来源', trigger: 'change' }
+        ],
+        dataType: [
+          { required: true, message: '请选择数据类型', trigger: 'change' }
+        ]
+      },
+      dataDistributorDialogVisible: false
     }
   },
   mounted() {
     this.loadData(this.currentPage, this.pagesize)
+    this.getTasks()
   },
   methods: {
     // 搜索
@@ -432,7 +499,10 @@ export default {
         dataType: '',
         dataStep: '',
         dataProgress: '',
-        fileUrl: ''
+        fileUrl: '',
+        sseTask: {
+          taskId: ''
+        }
       }
     },
 
@@ -455,6 +525,8 @@ export default {
 
     addData: function() {
       const that = this
+      // 设置处理步骤：1新数据；2预处理；3场景生成;100 未分发
+      this.data.dataStep = 100
       addData(this.data).then(response => {
         that.search()
         if (response.status === 20000) {
@@ -462,8 +534,8 @@ export default {
             type: 'success',
             message: '执行成功!'
           })
-
           that.addDialogVisible = false
+          that.search()
         } else if (response.status === 50001) {
           that.$message({
             type: 'warning',
@@ -492,13 +564,20 @@ export default {
       })
     },
 
-    submitData: function() {
-      this.optionsToInfo()
-      if (this.dialogTitle === '新增') {
-        this.addData()
-      } else if (this.dialogTitle === '编辑') {
-        this.editData()
-      }
+    submitData: function(ref) {
+      this.$refs[ref].validate((valid) => {
+        if (valid) {
+          this.optionsToInfo()
+          if (this.dialogTitle === '新增') {
+            this.addData()
+          } else if (this.dialogTitle === '编辑') {
+            this.editData()
+          }
+        } else {
+          console.log('error submit!!')
+          return false
+        }
+      })
     },
 
     // 单行删除
@@ -570,7 +649,7 @@ export default {
           result = '车载采集'
           break
         case 2:
-          result = '路测采集'
+          result = '路侧采集'
           break
         default:
           result = ''
@@ -584,10 +663,10 @@ export default {
       var result = ''
       switch (val) {
         case 1:
-          result = '文件'
+          result = '动态场景'
           break
         case 2:
-          result = '数据库'
+          result = '静态场景'
           break
         default:
           result = ''
@@ -608,6 +687,9 @@ export default {
           break
         case 3:
           result = '场景生成'
+          break
+        case 100:
+          result = '未分发'
           break
         default:
           result = ''
@@ -648,6 +730,78 @@ export default {
         return ''
       }
       return moment(date).format('YYYY-MM-DD HH:mm:ss')
+    },
+
+    getTasks() {
+      var that = this
+      findDistributionList({ pageNum: 1, pageSize: 10000 }).then(response => {
+        var list = response.list.list
+        var item = null
+        var _options = [
+          {
+            value: null,
+            label: '请选择'
+          }
+        ]
+        for (var index in list) {
+          item = list[index]
+          _options.push({
+            value: item.taskId,
+            label: item.taskName
+          })
+        }
+        that.options.taskOptions.options = _options
+        that.options.taskOptions.index = null
+      })
+    },
+
+    changeDataDistributor(dialogVisible) {
+      this.dataDistributorDialogVisible = dialogVisible
+    },
+    distributionData() {
+      var selectedTable = this.$refs.tableRef.store.states.selection
+      if (selectedTable.length === 0) {
+        this.$message({
+          message: '请先选择数据',
+          type: 'warning'
+        })
+        return
+      }
+      for (var i = 0; i < selectedTable.length; i++) {
+        if (selectedTable[i].dataStep !== 100) {
+          this.$message({
+            message: '不能选择已分发的数据',
+            type: 'warning'
+          })
+          return
+        }
+      }
+      this.dataDistributorDialogVisible = true
+      this.$refs.dataDistributorRef.init()
+    },
+    callbackDataDistributor(obj) {
+      this.commitDistribution(obj)
+    },
+
+    commitDistribution(selectedUser) {
+      var selectedTable = this.$refs.tableRef.store.states.selection
+      for (var i = 0; i < selectedTable.length; i++) {
+        selectedTable[i].sysUser = selectedUser
+      }
+      addCollectionUser(selectedTable).then(response => {
+        if (response.status === 20000) {
+          this.$message({
+            type: 'success',
+            message: response.message
+          })
+          this.dataDistributorDialogVisible = false
+        } else {
+          this.$message({
+            type: 'warning',
+            message: response.message
+          })
+        }
+      })
     }
 
   }

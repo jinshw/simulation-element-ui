@@ -111,7 +111,7 @@
           />
           <el-table-column
             prop="sysUser.username"
-            label="操作人"
+            label="负责人"
             sortable
           />
           <el-table-column
@@ -189,7 +189,7 @@
             </el-select>
           </el-form-item>
           <el-form-item label="处理步骤">
-            <el-select v-model="options.dataStepOptions.value" :disabled="true">
+            <el-select v-model="options.dataStepOptions.value">
               <el-option
                 v-for="item in options.dataStepOptions.options"
                 :key="item.value"
@@ -277,7 +277,7 @@ export default {
               label: '车载采集'
             }, {
               value: 2,
-              label: '路测采集'
+              label: '路侧采集'
             }
           ],
           value: 1
@@ -286,16 +286,20 @@ export default {
           options: [
             {
               value: 1,
-              label: '文件'
+              label: '动态场景'
             }, {
               value: 2,
-              label: '数据库'
+              label: '静态场景'
             }
           ],
           value: 1
         },
         dataStepOptions: {
           options: [
+            {
+              value: 0,
+              label: '请选择'
+            },
             {
               value: 1,
               label: '新数据'
@@ -305,9 +309,13 @@ export default {
             }, {
               value: 3,
               label: '场景生成'
+            }, {
+              value: 100,
+              label: '已经分发'
             }
+
           ],
-          value: 1
+          value: 0
         },
         dataProgressOptions: {
           options: [
@@ -343,7 +351,7 @@ export default {
                 label: '车载采集'
               }, {
                 value: 2,
-                label: '路测采集'
+                label: '路侧采集'
               }
             ],
             value: 0
@@ -355,10 +363,10 @@ export default {
                 label: '请选择'
               }, {
                 value: 1,
-                label: '文件'
+                label: '动态场景'
               }, {
                 value: 2,
-                label: '数据库'
+                label: '静态场景'
               }
             ],
             value: 0
@@ -368,7 +376,8 @@ export default {
               {
                 value: 0,
                 label: '请选择'
-              }, {
+              },
+              {
                 value: 1,
                 label: '新数据'
               }, {
@@ -377,7 +386,11 @@ export default {
               }, {
                 value: 3,
                 label: '场景生成'
+              }, {
+                value: 100,
+                label: '已经分发'
               }
+
             ],
             value: 0
           },
@@ -584,7 +597,7 @@ export default {
           result = '车载采集'
           break
         case 2:
-          result = '路测采集'
+          result = '路侧采集'
           break
         default:
           result = ''
@@ -598,10 +611,10 @@ export default {
       var result = ''
       switch (val) {
         case 1:
-          result = '文件'
+          result = '动态场景'
           break
         case 2:
-          result = '数据库'
+          result = '静态场景'
           break
         default:
           result = ''
@@ -622,6 +635,9 @@ export default {
           break
         case 3:
           result = '场景生成'
+          break
+        case 100:
+          result = '已经分发'
           break
         default:
           result = ''
