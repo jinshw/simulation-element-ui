@@ -93,7 +93,7 @@
   </div>
 </template>
 <script>
-import { sceneList, sceneListByKeyword, getPreviewFileUrl } from '@/api/simulation'
+import { sceneWebList, sceneListByKeyword, getPreviewFileUrl } from '@/api/simulation'
 export default {
   props: {
     searchObj: {
@@ -201,7 +201,7 @@ export default {
     },
     sceneList() {
       var that = this
-      sceneList(this.searchObj).then(response => {
+      sceneWebList(this.searchObj).then(response => {
         console.log('sceneList...', response)
         that.tableData = response.list.list
         that.totalCount = response.number

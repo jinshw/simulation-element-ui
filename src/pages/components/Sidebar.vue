@@ -1,6 +1,15 @@
 <template>
   <div class="sidebar-container">
-    <el-tree :data="data" :props="defaultProps" @node-click="handleNodeClick" />
+    <el-tree
+      ref="tree"
+      show-checkbox
+      :check-strictly="true"
+      :data="data"
+      :props="defaultProps"
+      node-key="stId"
+      @node-click="handleNodeClick"
+      @check-change="checkChange"
+    />
   </div>
 </template>
 <script>
@@ -45,7 +54,14 @@ export default {
       }],
       defaultProps: {
         children: 'children',
-        label: 'stName'
+        label: 'stName',
+        disabled: function(data, node) {
+          if (data.stType !== 2) { // 只能选择场景类型节点
+            return true
+          } else {
+            return false
+          }
+        }
       }
     }
   },
@@ -54,9 +70,33 @@ export default {
   },
   methods: {
     handleNodeClick(data) {
-      console.log(data)
-      this.$emit('handleTreeNodeClick', data, 'list')
+      // console.log(data)
+      // this.$emit('handleTreeNodeClick', data, 'list')
     },
+    // handleNodeClick(item, node, self) { // 自己定义的editCheckId，防止单选出现混乱
+    //   /* if (item.children.length === 0) {
+    //     this.editCheckId = item.stId
+    //     this.$refs.tree.setCheckedKeys([item.stId])
+    //   } */
+    // },
+    checkChange(item, node, self) {
+      console.log('this.$refs.tree.getCheckedNodes()---', this.$refs.tree.getCheckedNodes())
+      var nodes = this.$refs.tree.getCheckedNodes()
+      this.$emit('handleTreeNodeClick', nodes, 'list')
+      /* if (item.children.length === 0) {
+        if (node === true) {
+          this.editCheckId = item.stId
+          this.$refs.tree.setCheckedKeys([item.stId])
+        } else {
+          if (this.editCheckId === item.stId) {
+            this.$refs.tree.setCheckedKeys([item.stId])
+          }
+        }
+      } else {
+        this.$refs.tree.setChecked(item, false)
+      } */
+    },
+
     getSseSceneTypeTreeById() {
       var that = this
       getSseSceneTypeTreeById({ stId: '0' }).then(response => {

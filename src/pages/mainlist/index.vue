@@ -48,7 +48,8 @@ export default {
   methods: {
     handleTreeNodeClick(obj, funType) {
       console.log('handleTreeNodeClick...', obj)
-      this.searchObj.scenetypeList = [{ stId: obj.stId }]
+      this.searchObj.scenetypeList = obj
+      // this.searchObj.scenetypeList = [{ stId: obj.stId }]
       this.$refs.mainlistRef.getSceneList(this.searchObj, funType)
     }
   }

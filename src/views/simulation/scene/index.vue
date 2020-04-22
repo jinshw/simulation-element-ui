@@ -260,15 +260,8 @@
               />
             </el-select>
           </el-form-item>
-          <el-form-item label="关键词">
+          <!-- <el-form-item label="关键词">
             <el-select v-model="keywordOptions.value" multiple clearable filterable placeholder="请选择">
-              <!-- <el-option
-                v-for="item in options.keywordOptions.options"
-                :key="item.value"
-                :label="item.label"
-                :value="item.value"
-              /> -->
-
               <el-option-group
                 v-for="group in keywordOptions.options"
                 :key="group.label"
@@ -283,7 +276,7 @@
               </el-option-group>
 
             </el-select>
-          </el-form-item>
+          </el-form-item> -->
           <el-form-item label="审核状态">
             <el-select v-model="options.reviewStatusOptions.value" placeholder="请选择">
               <el-option

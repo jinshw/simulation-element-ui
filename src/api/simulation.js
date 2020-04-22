@@ -42,6 +42,13 @@ export function sceneList(data) {
     data
   })
 }
+export function sceneWebList(data) {
+  return request({
+    url: '/sseSceneDatas/weblist',
+    method: 'post',
+    data
+  })
+}
 export function sceneListByKeyword(data) {
   return request({
     url: '/sseSceneDatas/listByKeyword',

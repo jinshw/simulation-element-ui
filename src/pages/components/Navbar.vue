@@ -21,12 +21,12 @@
             场景-树形搜索
           </a>
         </el-menu-item>
-        <el-menu-item index="3">
+        <!-- <el-menu-item index="3">
           <a href="keywordlist.html">
             场景-关键词搜索
           </a>
 
-        </el-menu-item>
+        </el-menu-item> -->
         <!-- <el-menu-item index="4">联系我们</el-menu-item> -->
 
       </el-menu>

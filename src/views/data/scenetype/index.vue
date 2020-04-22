@@ -30,14 +30,17 @@
     </el-table>
 
     <el-dialog :title="dialogTitle" :visible.sync="addDialogVisible" :close-on-click-modal="false">
-      <el-form label-width="100px">
-        <el-form-item label="类型名称">
+      <el-form ref="sceneTypeRef" label-width="100px" :rules="rules" :model="sceneType">
+        <el-form-item label="类型ID" prop="stId">
+          <el-input v-model="sceneType.stId" auto-complete="off" :disabled="dialogTitle != '新增'" />
+        </el-form-item>
+        <el-form-item label="类型名称" prop="stName">
           <el-input v-model="sceneType.stName" auto-complete="off" />
         </el-form-item>
         <el-form-item label="类型英文">
           <el-input v-model="sceneType.stNameEnglish" auto-complete="off" />
         </el-form-item>
-        <el-form-item label="上级">
+        <el-form-item label="上级" prop="parentSceneType.stName">
           <el-input
             v-model="sceneType.parentSceneType.stName"
             auto-complete="off"
@@ -150,7 +153,22 @@ export default {
       },
       defaultExpandedKeys: ['-1'],
       defaultCheckedKeys: ['-1'],
-      editCheckId: ''
+      editCheckId: '',
+
+      rules: {
+        stId: [
+          { required: true, message: '类型ID', trigger: 'blur' },
+          { min: 1, max: 32, message: '长度在1 到 32 个字符', trigger: ['blur', 'change'] }
+        ],
+        stName: [
+          { required: true, message: '类型名称', trigger: 'blur' },
+          { min: 2, max: 30, message: '长度在2 到 30 个字符', trigger: ['blur', 'change'] }
+        ],
+        'parentSceneType.stName': [
+          { required: true, message: '上级', trigger: 'blur' }
+        ]
+      }
+
     }
   },
   mounted() {
@@ -181,7 +199,7 @@ export default {
       this.dialogTitle = '新增'
       this.addDialogVisible = true
       this.sceneType = {
-        stId: '-1',
+        stId: '',
         pId: '',
         stName: '',
         stNameEnglish: '',
@@ -253,10 +271,10 @@ export default {
             message: '执行成功!'
           })
           that.addDialogVisible = false
-        } else if (response.status === 50001) {
+        } else {
           that.$message({
             type: 'warning',
-            message: '执行失败!'
+            message: response.message
           })
         }
       })
@@ -275,18 +293,30 @@ export default {
         } else {
           that.$message({
             type: 'error',
-            message: '执行失败!'
+            message: response.message
           })
         }
       })
     },
     commitEvent: function() {
       this.optionsToInfo()
-      if (this.dialogTitle === '新增') {
-        this.addDept()
-      } else {
-        this.editDept()
-      }
+      // if (this.dialogTitle === '新增') {
+      //   this.addDept()
+      // } else {
+      //   this.editDept()
+      // }
+      this.$refs['sceneTypeRef'].validate((valid) => {
+        if (valid) {
+          if (this.dialogTitle === '新增') {
+            this.addDept()
+          } else {
+            this.editDept()
+          }
+        } else {
+          console.log('error submit!!')
+          return false
+        }
+      })
     },
     infoToOptions: function() {
       for (var key in this.options) {
