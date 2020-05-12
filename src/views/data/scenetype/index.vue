@@ -260,7 +260,7 @@ export default {
       this.sceneType.pId = this.currentNode.stId
       this.sceneType.parentSceneType.stName = this.currentNode.stName
     },
-    addDept: function(event) {
+    addSceneType: function(event) {
       var that = this
       this.dialogTitle = '新增'
       addSceneType(that.sceneType).then(response => {
@@ -279,7 +279,7 @@ export default {
         }
       })
     },
-    editDept: function(event) {
+    editSceneType: function(event) {
       var that = this
       this.dialogTitle = '编辑'
       editSceneType(that.sceneType).then(response => {
@@ -308,9 +308,9 @@ export default {
       this.$refs['sceneTypeRef'].validate((valid) => {
         if (valid) {
           if (this.dialogTitle === '新增') {
-            this.addDept()
+            this.addSceneType()
           } else {
-            this.editDept()
+            this.editSceneType()
           }
         } else {
           console.log('error submit!!')

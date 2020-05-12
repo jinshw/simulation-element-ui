@@ -247,4 +247,11 @@ export function findSceneDistributionList(data) {
     data
   })
 }
+export function todolist(data) {
+  return request({
+    url: '/sseChart/todolist',
+    method: 'post',
+    data
+  })
+}
 

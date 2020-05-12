@@ -206,6 +206,9 @@
               />
             </el-select>
           </el-form-item>
+          <el-form-item label="文件路径" prop="filePath">
+            <el-input v-model="data.fileUrl" auto-complete="off" />
+          </el-form-item>
           <!-- <el-form-item label="处理步骤">
             <el-input v-model="data.dataStep" />
           </el-form-item>

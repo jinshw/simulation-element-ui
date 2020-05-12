@@ -329,6 +329,9 @@
               <el-button size="small" type="primary">点击上传</el-button>
             </el-upload>
           </el-form-item>
+          <el-form-item label="文件存储路径">
+            <el-input v-model="data.filePath" />
+          </el-form-item>
         </el-form>
         <div slot="footer" class="dialog-footer">
           <el-button @click="addDialogVisible = false">取 消</el-button>
@@ -444,6 +447,7 @@ export default {
         previewFile: '',
         reviewStatus: '',
         reviewComment: '',
+        filePath: '',
         scenetypeList: null
 
       },
