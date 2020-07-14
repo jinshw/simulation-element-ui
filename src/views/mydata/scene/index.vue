@@ -188,7 +188,7 @@
               <el-button
                 size="small"
                 type="primary"
-                disabled
+                :disabled="scope.row.filePath !== null && scope.row.filePath !== '' ? false : true"
                 @click="handleDownload(scope.$index, scope.row)"
               >下载数据</el-button>
             </template>
@@ -330,6 +330,27 @@
               <el-button size="small" type="primary">点击上传</el-button>
             </el-upload>
           </el-form-item>
+
+          <br>
+          <el-form-item label="场景数据文件">
+            <el-input
+              v-if="data.filePath != ''"
+              v-model="data.filePath"
+            />
+          </el-form-item>
+          <el-form-item>
+            <el-upload
+              ref="uploadFile"
+              class="upload-demo inline-block"
+              action="https://jsonplacehoder.typeicon.com/posts/"
+              :show-file-list="false"
+              :auto-upload="true"
+              :before-upload="beforeUploadFile"
+            >
+              <el-button size="small" type="primary">点击上传</el-button>
+            </el-upload>
+          </el-form-item>
+
         </el-form>
         <div slot="footer" class="dialog-footer">
           <el-button @click="addDialogVisible = false">取 消</el-button>
@@ -380,7 +401,7 @@
 </template>
 
 <script>
-import { findCdDatasDistributionList, mySceneList, addScene, editScene, deleteScene, imgUpload, getPreviewFileUrl, getSceneTypeTree, addSceneUser } from '@/api/simulation'
+import { findCdDatasDistributionList, mySceneList, addScene, editScene, deleteScene, imgUpload, fileDataUpload, sceneFileDownLoad, getPreviewFileUrl, getSceneTypeTree, addSceneUser } from '@/api/simulation'
 import DataDistributor from '@/views/data/datadistributor/index'
 import moment from 'moment'
 
@@ -991,7 +1012,32 @@ export default {
       })
     },
     handleDownload: function(index, row) {
-
+      sceneFileDownLoad(row).then(response => {
+        const data = response.data
+        if (!data) {
+          this.$message({
+            type: 'warning',
+            message: '下载失败'
+          })
+          return
+        }
+        console.log(response)
+        const fileName = row.filePath
+        console.log('fileName=' + fileName)
+        const url = window.URL.createObjectURL(new Blob([data]))
+        const a = document.createElement('a')
+        a.style.display = 'none'
+        a.href = url
+        a.setAttribute('download', fileName)
+        document.body.appendChild(a)
+        // 点击下载
+        a.click()
+        // 下载完成移除元素
+        document.body.removeChild(a)
+        // 释放掉blob对象
+        window.URL.revokeObjectURL(url)
+        console.log('下载完成')
+      })
     },
     // 每页显示数据量变更
     handleSizeChange: function(val) {
@@ -1132,6 +1178,40 @@ export default {
             message: '文件上传成功'
           })
           that.data.previewFile = response.name
+        } else if (response.status === 500) {
+          this.$message({
+            type: 'warning',
+            message: `文件上传失败,失败原因${response.msg}`
+          })
+        }
+      })
+    },
+    beforeUploadFile(file) {
+      var that = this
+      // var upLoadFileName = file.name
+      // 如果上传的文件不符合条件
+      var checkMessage = this.fileCheck(file)
+      if (checkMessage !== '') {
+        this.$message(checkMessage)
+        return
+      }
+      var formData = new FormData()
+      formData.append('file', file)
+      var param = {
+        sid: this.data.sid,
+        scId: this.data.scId,
+        filePath: this.data.filePath
+      }
+
+      formData.append('sseSceneDatasStr', JSON.stringify(param))
+      fileDataUpload(formData).then(response => {
+        console.log(response)
+        if (response.status === 200) {
+          this.$message({
+            type: 'success',
+            message: '文件上传成功'
+          })
+          that.data.filePath = response.name
         } else if (response.status === 500) {
           this.$message({
             type: 'warning',

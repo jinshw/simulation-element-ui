@@ -29,7 +29,7 @@ service.interceptors.request.use(
 
     if (config.url === '/file/upload') {
       config.headers['Content-Type'] = 'multipart/form-data'
-    } else if (config.url === '/file/fileDownLoad') {
+    } else if (config.url === '/file/fileDownLoad' || config.url === '/sseSceneDatas/fileDownLoad') {
       config.responseType = 'blob'
       config.headers['Content-Type'] = 'application/json;charset=UTF-8'
     }
@@ -101,6 +101,11 @@ service.interceptors.response.use(
       // })
 
       const promise = new Promise(function(resolve, reject) {
+        Message({
+          message: '操作失败',
+          type: 'warning',
+          duration: 3 * 1000
+        })
         reject(new Error(res.message || 'Error'))
       })
       promise.catch(function(error) {

@@ -170,6 +170,12 @@
                 type="success"
                 @click="handlePreviewImg(scope.$index, scope.row)"
               >预览</el-button>
+              <el-button
+                size="small"
+                type="primary"
+                :disabled="scope.row.filePath !== null && scope.row.filePath !== '' ? false : true"
+                @click="handleDownload(scope.$index, scope.row)"
+              >下载数据</el-button>
               <!-- <el-button
                 size="small"
                 type="danger"
@@ -364,7 +370,7 @@
 </template>
 
 <script>
-import { getCollectionDataListNotPage, findSceneDistributionList, addScene, editScene, deleteScene, imgUpload, getPreviewFileUrl, getSceneTypeTree } from '@/api/simulation'
+import { getCollectionDataListNotPage, findSceneDistributionList, addScene, editScene, deleteScene, imgUpload, sceneFileDownLoad, getPreviewFileUrl, getSceneTypeTree } from '@/api/simulation'
 import moment from 'moment'
 
 // import qs from 'qs'
@@ -958,7 +964,32 @@ export default {
       })
     },
     handleDownload: function(index, row) {
-
+      sceneFileDownLoad(row).then(response => {
+        const data = response.data
+        if (!data) {
+          this.$message({
+            type: 'warning',
+            message: '下载失败'
+          })
+          return
+        }
+        console.log(response)
+        const fileName = row.filePath
+        console.log('fileName=' + fileName)
+        const url = window.URL.createObjectURL(new Blob([data]))
+        const a = document.createElement('a')
+        a.style.display = 'none'
+        a.href = url
+        a.setAttribute('download', fileName)
+        document.body.appendChild(a)
+        // 点击下载
+        a.click()
+        // 下载完成移除元素
+        document.body.removeChild(a)
+        // 释放掉blob对象
+        window.URL.revokeObjectURL(url)
+        console.log('下载完成')
+      })
     },
     // 每页显示数据量变更
     handleSizeChange: function(val) {

@@ -84,6 +84,20 @@ export function imgUpload(data) {
     data
   })
 }
+export function fileDataUpload(data) {
+  return request({
+    url: '/sseSceneDatas/fileDataUpload',
+    method: 'post',
+    data
+  })
+}
+export function sceneFileDownLoad(data) {
+  return request({
+    url: '/sseSceneDatas/fileDownLoad',
+    method: 'post',
+    data
+  })
+}
 export function getPreviewFileUrl(data) {
   return request({
     url: '/sseSceneDatas/getPreviewFileUrl',
